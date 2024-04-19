@@ -2,13 +2,13 @@
 
 ### Causal Analysis of heterogeneous Perturbation Effects in single cell CRISPR screening data
 
-<img align="center" src="./overview.png?raw=true" width=500 height=400>
+<img align="center" src="./overview.png?raw=true" width=550 height=570>
 
 ### Introduction
 In scCAPE, we formulated the perturbation analysis in single-cell CRISPR screening data as a problem of treatment effect estimation.
 
 scCAPE outputs the estimation and inference of heterogeneous perturbation effects at single-cell resolution by
-1. disentangling the perturbation effects from original cell-state variations based on an autoencoder framework with adversarial training;
+1. disentangling the perturbation effects from inherent cell-state variations based on an autoencoder framework with adversarial training;
 2. growing causal forests for each perturbation and factor.
 
 scCAPE enables us to
@@ -28,7 +28,7 @@ The input adata of scCAPE contains the normalized cell-by-gene matrix and the fo
 1. **'condition'**: The perturbation labels. **Note the label of control cells must be 'control'**. **When analyzing high-MOI datasets, the perturbation label must be 'gene_a+gene_b' for two-gene perturbations**;
 2. **'cell_type'** (Not necessary): The cell states used in downstream analysis, which can be pre-defined or clustered using some unsupervised algorithms like 'leiden'. If not specified, scCAPE will perform leiden clustering using 'sc.tl.leiden(data, resolution=0.6)' when performing adversarial training;
 3. **'condition_name'** (Not necessary) : The labels for performing DEG analysis, which will be used in evaluating reconsturction performance. If not specified, scCAPE will just copy the values in 'condition' when performing adversarial training;
-4. **'control'** (Not necessary) : The dummy variable to show if the cell is control (1) or perturbed (0), which will be generated based on perturbation label when performing adversarial training in scCAPE.
+4. **'control'** (Not necessary) : The dummy variable to show if the cell is control (1) or perturbed (0), which will be generated based on perturbation label ('condition') when performing adversarial training in scCAPE.
 
 ### Basic Usage
 ```python
@@ -52,12 +52,12 @@ sccape.onmf(data=adata.X.T, dataset_name=dataset_name, ncells=2000, nfactors=lis
 ```
 **The initialized loading matrix** ('W_ini.npy') will be stored in "./dataset_name/oNMF". 
 
-2. Disentangle the perturbation effects from the original cell-state variations using adversarial training:<br>
+2. Disentangle perturbation effects from inherent cell-state variations using adversarial training:<br>
 ``` python
 sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
                max_epochs=300, lambda_adv=0.5, lambda_ort=0.5, patience=5, model_index=0, hparams=None, verbose=True)
 ```
-**The model file** ('stored_model.pt'), **basal state**('model_basal.h5ad'), **factor expression** ('model_treated.h5ad') and **gene loading matrix** ('model_gene_loading.npy') will be stored in "./dataset_name/CAPE". 
+**The model file** ('stored_model.pt'), **basal state**('model_basal.h5ad'), **factor expression** ('model_treated.h5ad') and **gene loading matrix** ('model_gene_loading.npy') will be stored in "./dataset_name/CAPE". The selection of 'lambda_adv' (representing the weight of the discriminator loss) ought to be tailored to the dataset. When perturbation effects are more pronounced, a higher 'lambda_adv' value is warranted. Differences in hyperparameter configurations could result in slightly varied results, so we advise users to train neural networks with a range of setups, visualize the disentangling performance, and evaluate the outcomes based on domain expertise.
 
 3. Grow causal forests for each perturbation and factor:<br>
 ```python
