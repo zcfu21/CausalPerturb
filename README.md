@@ -57,12 +57,12 @@ sccape.onmf(data=adata.X.T, dataset_name=dataset_name, ncells=2000, nfactors=lis
 sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
                max_epochs=300, lambda_adv=0.5, lambda_ort=0.5, patience=5, model_index=0, hparams=None, verbose=True)
 ```
-**The model file** ('stored_model.pt'), **basal state**('model_basal.h5ad'), **factor expression** ('model_treated.h5ad') and **gene loading matrix** ('model_gene_loading.npy') will be stored in "./dataset_name/CAPE". The selection of 'lambda_adv' (representing the weight of the discriminator loss) ought to be tailored to the dataset. When perturbation effects are more pronounced, a higher 'lambda_adv' value is warranted. Differences in hyperparameter configurations could result in slightly varied results, so we advise users to train neural networks with a range of setups, visualize the disentangling performance, and evaluate the outcomes based on domain expertise.
+**The model file** ('stored_model.pt'), **basal state**('model_basal.h5ad'), **outcome factor** ('model_treated.h5ad') and **gene loading matrix** ('model_gene_loading.npy') will be stored in "./dataset_name/CAPE". The selection of 'lambda_adv' (representing the weight of the discriminator loss) ought to be tailored to the dataset. When perturbation effects are more pronounced, a higher 'lambda_adv' value is warranted. Differences in hyperparameter configurations could result in slightly varied results, so we advise users to train neural networks with a range of setups, visualize the disentangling performance, and evaluate the outcomes based on domain expertise.
 
 3. Grow causal forests for each perturbation and factor:<br>
 ```python
-basal=sc.read_h5ad(os.path.join(dataset_name,'CAPE','model_basal.h5ad'))
-treated=sc.read_h5ad(os.path.join(dataset_name,'CAPE','model_treated.h5ad'))
+basal=sc.read_h5ad(os.path.join(dataset_name,'CAPE','model_basal.h5ad')) # basal state
+treated=sc.read_h5ad(os.path.join(dataset_name,'CAPE','model_treated.h5ad')) # outcome factor state
 sccape.CF_all_target_all_factor(dataset_name=dataset_name, basal=basal, treated=treated, adata=adata,
                                  pert_key='condition', n_estimators=2000, min_samples_leaf=5, 
                                  verbose=True, random_state=0, alpha=0.05)
@@ -71,7 +71,7 @@ The function outputs three dictionaries in "./dataset_name/CausalForests": **'ta
 
 4. Factor annotation:<br>
 ```python
-gene_loading=np.load(os.path.join(dataset_name,'CAPE','model_gene_loading.npy'))
+gene_loading=np.load(os.path.join(dataset_name,'CAPE','model_gene_loading.npy')) # gene loading matrix
 gene_loading_df=pd.DataFrame(gene_loading,columns=adata.var_names)
 # selecting high-loading genes of each factor
 genes_do_go=plotting.plot_top_genes_loadings(gene_names=adata.var_names,W=gene_loading.T, figsize=(10,6), save_path=None, save=False)
