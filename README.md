@@ -46,7 +46,7 @@ dataset_name = 'dataset_name' # to store results
 data_path = './data.h5ad' # data path
 adata = sc.read_h5ad(data_path) # read data
 ```
-1. Initialize the weight matrix by performing orthogonal non-negative matrix factoriation:<br>
+1. Initialize the weight matrix by performing orthogonal non-negative matrix factorization:<br>
 ``` python
 sccape.onmf(data=adata.X.T, dataset_name=dataset_name, ncells=2000, nfactors=list(range(5, 16)), nreps=2, niters=500)
 ```
@@ -59,7 +59,7 @@ sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_k
 ```
 **The model file** ('stored_model.pt'), **basal state**('model_basal.h5ad'), **outcome factor** ('model_treated.h5ad') and **gene loading matrix** ('model_gene_loading.npy') will be stored in "./dataset_name/CAPE". The selection of 'lambda_adv' (representing the weight of the discriminator loss) ought to be tailored to the dataset. When perturbation effects are more pronounced, a higher 'lambda_adv' value is warranted. Differences in hyperparameter configurations could result in slightly varied results, so we advise users to train neural networks with a range of setups, visualize the disentangling performance, and evaluate the outcomes based on domain expertise.
 
-3. Grow causal forests for each perturbation and factor:<br>
+3. Growing causal forests for each perturbation and factor:<br>
 ```python
 basal=sc.read_h5ad(os.path.join(dataset_name,'CAPE','model_basal.h5ad')) # basal state
 treated=sc.read_h5ad(os.path.join(dataset_name,'CAPE','model_treated.h5ad')) # outcome factor state
