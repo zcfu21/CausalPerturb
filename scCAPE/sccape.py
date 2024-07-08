@@ -20,6 +20,7 @@ from sklearn.metrics import pairwise_distances
 import scanpy as sc
 import random
 import torch
+import scib
 from econml.grf import CausalForest
 from econml.grf import MultiOutputGRF
 from scipy.stats import norm
@@ -28,7 +29,10 @@ from scCAPE.modelDL import CAPE
 from scCAPE.dataDL import load_dataset_splits
 from scCAPE.plotting import plot_loss
 from scCAPE.plotting import plot_metric
-
+# from modelDL import CAPE
+# from dataDL import load_dataset_splits
+# from plotting import plot_loss
+# from plotting import plot_metric
 
 ################# Part1: oNMF
 def minibatchkmeans(m, k):
@@ -607,13 +611,40 @@ def CAPE_train(data_path, dataset_name, model_index=0, seed=0, perturbation_key=
     basal_adata.var.columns = basal_adata.var.columns.astype(str)
     basal_adata.obs['condition'] = datasets["all"].perts_names
     basal_adata.obs['cell_type'] = datasets["all"].cell_state
+    basal_adata.obs['control'] = datasets["all"].is_control
+    # check the mixing performance
+    if verbose:
+        print('Checking the mixing performance...')
+    perts_name_list = list(set(list(basal_adata.obs.condition.values)))
+    perts_name_list.remove('control')
+    basal_adata.obsm['X_pca'] = basal_adata.X
+    asw_res1 = scib.metrics.metrics(adata=basal_adata, adata_int=basal_adata,
+                                   batch_key='control', label_key='cell_type',
+                                   silhouette_=True).loc['ASW_label/batch'][0]
+
+    if len(perts_name_list) <= 20:
+        all_pert_asw_list = []
+        for pert in perts_name_list:
+            res = scib.metrics.metrics(adata=basal_adata[basal_adata.obs.condition.isin([pert, 'control'])],
+                                       adata_int=basal_adata[basal_adata.obs.condition.isin([pert, 'control'])],
+                                       batch_key='condition', label_key='cell_type', silhouette_=True).loc[
+                'ASW_label/batch'][0]
+            all_pert_asw_list.append(res)
+        all_pert_asw_mean = np.mean(all_pert_asw_list)
+    else:
+        all_pert_asw_mean = 1
+
+    if asw_res1 < 0.83 or all_pert_asw_mean < 0.83:
+        print('Warning: The mixing performance is not good. Try a higher lambda_adv, or set a lower gradient penalty'+
+            ' for the discriminator by using hparams={\'penalty_adversary\':val}, val<10')
 
     tr_adata = sc.AnnData(treated, treated.index.to_frame(), treated.columns.to_frame())
     tr_adata.obs.columns = tr_adata.obs.columns.astype(str)
     tr_adata.var.columns = tr_adata.var.columns.astype(str)
     tr_adata.obs['condition'] = datasets["all"].perts_names
     tr_adata.obs['cell_type'] = datasets["all"].cell_state
-
+    del basal_adata.obsm['X_pca']
+    basal_adata.obs = basal_adata.obs.drop('control', axis=1)
     basal_adata.write(os.path.join(dataset_path, 'model_index={}_basal.h5ad'.format(model_index)))
     tr_adata.write(os.path.join(dataset_path, 'model_index={}_treated.h5ad'.format(model_index)))
 
