@@ -99,7 +99,7 @@ The GO enrichment results will be stored in "./dataset_name/CAPE".
 
 There are also some functions to generate plots: import the module `from scCAPE import plotting`  and use the plotting functions. 
 
-See the detailed usages in Notebook: [CROP-seq T cells](https://github.com/zichufu/scCAPE/blob/main/res/SM2018_Tcells_res.ipynb). 
+See the detailed usages in Notebook: [CROP-seq T cells](https://github.com/zichufu/CausalPerturb/blob/main/res/SM2018_Tcells_res.ipynb). 
 
 ### Contact
 Please contact [fzc21@mails.tsinghua.edu.cn] with questions.
