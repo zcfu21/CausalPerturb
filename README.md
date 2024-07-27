@@ -1,6 +1,6 @@
-# scCAPE
+# CausalPerturb
 
-### Causal Analysis of heterogeneous Perturbation Effects in single cell CRISPR screening data
+### Causal Analysis of heterogeneous Perturbation Effects in single cell CRISPR screening data (scCAPE)
 
 <img align="center" src="./overview.png?raw=true" width=550 height=570>
 
@@ -57,7 +57,7 @@ sccape.onmf(data=adata.X.T, dataset_name=dataset_name, ncells=2000, nfactors=lis
 sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
                max_epochs=300, lambda_adv=0.5, lambda_ort=0.5, patience=5, model_index=0, hparams=None, verbose=True)
 ```
-**The model file** ('stored_model.pt'), **basal state**('model_basal.h5ad'), **outcome factor** ('model_treated.h5ad') and **gene loading matrix** ('model_gene_loading.npy') will be stored in "./dataset_name/CAPE". The selection of 'lambda_adv' (representing the weight of the discriminator loss) ought to be tailored to the dataset. When perturbation effects are more pronounced, a higher 'lambda_adv' value is warranted. Differences in hyperparameter configurations could result in slightly varied results, so we advise users to train neural networks with a range of setups, visualize the disentangling performance, and evaluate the outcomes based on domain expertise.
+**The model file** ('stored_model.pt'), **basal state**('model_basal.h5ad'), **outcome factor** ('model_treated.h5ad') and **gene loading matrix** ('model_gene_loading.npy') will be stored in "./dataset_name/CAPE". The selection of 'lambda_adv' (representing the weight of the discriminator loss) ought to be tailored to the dataset. When perturbation effects are more pronounced, a higher 'lambda_adv' value is warranted. Differences in hyperparameter configurations could result in varied results, so we advise users to train neural networks with a range of setups, visualize the disentangling performance, and evaluate the outcomes based on domain expertise.
 
 3. Growing causal forests for each perturbation and factor:<br>
 ```python
