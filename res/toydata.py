@@ -19,7 +19,7 @@ def main():
     data_path = 'data/toydata.h5ad'  # data path
     adata = sc.read_h5ad(data_path)  # read data
 
-    # Initialize W using oNMF, ~ 15 minutes
+    # Initialize W using oNMF, ~ 20 minutes
     sccape.onmf(data=adata.X.T, dataset_name=dataset_name,
                 ncells=500, nfactors=list(range(5, 16)), nreps=2, niters=500)
 
