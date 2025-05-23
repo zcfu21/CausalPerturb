@@ -17,7 +17,7 @@ scCAPE enables us to
 * and infer genetic interactions in high-MOI datasets.
 
 ### Installation
-scCAPE is based on `python` version 3.7+, `pytorch` and `scanpy`. Install directly from pip with:
+scCAPE is based on `python` version 3.7+, `torch` and `scanpy`. Install directly from pip with:
 
 ```python
   pip install scCAPE
@@ -26,9 +26,8 @@ scCAPE is based on `python` version 3.7+, `pytorch` and `scanpy`. Install direct
 ### Input 
 The input adata of scCAPE contains the normalized cell-by-gene matrix and the following metadata:
 1. **'condition'**: The perturbation labels. **Note the label of control cells must be 'control'**. **When analyzing high-MOI datasets, the perturbation label must be 'gene_a+gene_b' for two-gene perturbations**;
-2. **'cell_type'** (Not necessary): The cell states used in downstream analysis, which can be pre-defined or clustered using some unsupervised algorithms like 'leiden'. If not specified, scCAPE will perform leiden clustering using 'sc.tl.leiden(data, resolution=0.6)' when performing adversarial training;
-3. **'condition_name'** (Not necessary) : The labels for performing DEG analysis, which will be used in evaluating reconsturction performance. If not specified, scCAPE will just copy the values in 'condition' when performing adversarial training;
-4. **'control'** (Not necessary) : The dummy variable to show if the cell is control (1) or perturbed (0), which will be generated based on perturbation label ('condition') when performing adversarial training in scCAPE.
+2. **'control'** (Not necessary) : The dummy variable to show if the cell is control (1) or perturbed (0), which will be generated based on perturbation label ('condition') when performing adversarial training in scCAPE.
+3. **'cell_type'** (Not necessary) : The cell states used in downstream analysis, which can be pre-defined or clustered using some unsupervised algorithms like 'leiden'. If not specified, scCAPE will perform leiden clustering using 'sc.tl.leiden(data)' when performing adversarial training;
 
 ### Basic Usage
 ```python
@@ -55,23 +54,22 @@ sccape.onmf(data=adata.X.T, dataset_name=dataset_name, ncells=2000, nfactors=lis
 2. Disentangle perturbation effects from inherent cell-state variations using adversarial training:<br>
 ``` python
 sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
-               max_epochs=300, lambda_adv=0.5, lambda_ort=0.5, patience=5, model_index=0, hparams=None, verbose=True)
+               max_epochs=300, lambda_adv=0.5, lambda_ort=0.5, model_index=0, hparams=None, verbose=True)
 ```
 **The model file** ('stored_model.pt'), **basal state**('model_basal.h5ad'), **outcome factor** ('model_treated.h5ad') and **gene loading matrix** ('model_gene_loading.npy') will be stored in "./dataset_name/CAPE". The selection of 'lambda_adv' (representing the weight of the discriminator loss) ought to be tailored to the dataset. When perturbation effects are more pronounced, a higher 'lambda_adv' value is warranted. Differences in hyperparameter configurations could result in varied results, so we advise users to train neural networks with a range of setups, visualize the disentangling performance, and evaluate the outcomes based on domain expertise.
 
 3. Growing causal forests for each perturbation and factor:<br>
 ```python
-basal=sc.read_h5ad(os.path.join(dataset_name,'CAPE','model_basal.h5ad')) # basal state
-treated=sc.read_h5ad(os.path.join(dataset_name,'CAPE','model_treated.h5ad')) # outcome factor state
+basal=sc.read_h5ad(os.path.join(dataset_name,'CAPE','model_index={}_basal.h5ad'.format(model_index))) # basal state
+treated=sc.read_h5ad(os.path.join(dataset_name,'CAPE','model_index={}_treated.h5ad'.format(model_index))) # outcome factor state
 sccape.CF_all_target_all_factor(dataset_name=dataset_name, basal=basal, treated=treated, adata=adata,
-                                 pert_key='condition', n_estimators=2000, min_samples_leaf=5, 
-                                 verbose=True, random_state=0, alpha=0.05)
+                                 pert_key='condition', verbose=True, alpha=0.05)
 ```
 The function outputs three dictionaries in "./dataset_name/CausalForests": **'tau_factor_mean_all_dict.pkl'**, **'tau_q_val_factor_all_dict.pkl'** and **'sig_factor_all_dict.pkl'**. The keys of the dicts are perturbations, and the values are num_cells\*num_factors array which gives perturbation effect, qvalue and significance on each factor of each cell.
 
 4. Factor annotation:<br>
 ```python
-gene_loading=np.load(os.path.join(dataset_name,'CAPE','model_gene_loading.npy')) # gene loading matrix
+gene_loading=np.load(os.path.join(dataset_name,'CAPE','model_index={}_gene_loading.npy'.format(model_index))) # gene loading matrix
 gene_loading_df=pd.DataFrame(gene_loading,columns=adata.var_names)
 # selecting high-loading genes of each factor
 genes_do_go=plotting.plot_top_genes_loadings(gene_names=adata.var_names,W=gene_loading.T, figsize=(10,6), save_path=None, save=False)
@@ -88,6 +86,8 @@ for factor in range(gene_loading.shape[0]):
 ```
 The GO enrichment results will be stored in "./dataset_name/CAPE".
 
+Check the usage with a [toy data]().
+
 ### Other available functions
 
 *  Genetic interaction analysis: `sccape.CF_GI_single_target_single_factor`
@@ -98,8 +98,6 @@ The GO enrichment results will be stored in "./dataset_name/CAPE".
 *  Calculate the overall perturbation rank list: `sccape.cal_overall_rank`
 
 There are also some functions to generate plots: import the module `from scCAPE import plotting`  and use the plotting functions. 
-
-See the detailed usages in Notebook: [CROP-seq T cells](https://github.com/zichufu/CausalPerturb/blob/main/res/SM2018_Tcells_res.ipynb). 
 
 ### Contact
 Please contact [fzc21@mails.tsinghua.edu.cn] with questions.
