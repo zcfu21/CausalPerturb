@@ -84,7 +84,8 @@ class Expdata:
             pass
         else:
             print('Performing leiden clustering...')
-            sc.tl.leiden(data, resolution=0.6)
+            sc.pp.neighbors(data)
+            sc.tl.leiden(data)
             data.obs.rename(columns={'leiden': 'cell_type'}, inplace=True)
         self.cell_state = data.obs["cell_type"]
         self.cell_state_code = self.cell_state.astype("category").cat.codes.values.astype(int)

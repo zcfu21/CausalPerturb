@@ -48,7 +48,7 @@ def minibatchkmeans(m, k):
     -------
     Cluster centroids, cluster memberships
     """
-    model = clust.MiniBatchKMeans(n_clusters=k)  # prepare k means model
+    model = clust.MiniBatchKMeans(n_clusters=k, random_state=0)  # prepare k means model
     model.fit(m)  # fit with data
     return model.cluster_centers_.T, model.predict(m)
 
@@ -85,8 +85,8 @@ def oNMF(X, k, n_iters=500, verbose=1, residual=1e-4, tof=1e-4):
         S = A.T.dot(X.dot(Y.T))
     else:
         S = np.eye(k)
-
-    X = X.todense()
+    if ss.issparse(X):
+        X = X.todense()
     XfitPrevious = np.inf
     with np.errstate(divide='ignore', invalid='ignore'):
         for i in range(n_iters):
@@ -232,6 +232,14 @@ def find_best_k(oNMFres, dataset_path, alpha=1, SS_weight=0.3):
         currscale = np.max(np.array(SS))
         basescales.append(currscale)
 
+    # Calculate loading correlation, penalize for highly correlated factors
+    corr_penalty = []
+    for factor in range(len(nfactors)):
+        dat = oNMFres['onmf']['loadings'][factor].T
+        corr_penalty.append((np.sum(dat @ dat.T > 0.5)-dat.shape[0])/2)
+    corr_penalty = np.array(corr_penalty)
+    corr_penalty_norm = np.divide(corr_penalty, np.max(corr_penalty)+1e-4)
+
     # Calculate f(k;alpha,j) values for all j and alpha
     fk_df = pd.DataFrame()
     minvals = []
@@ -248,7 +256,7 @@ def find_best_k(oNMFres, dataset_path, alpha=1, SS_weight=0.3):
             SS.append((np.mean(np.divide(factor_std, factor_mean ** alphas[i]))))
         for j in jrange:
             currscale = j / currbasescale
-            curr_values = np.array(errors_norm) - currscale * (np.array(SS))  # f(k;alpha,j)
+            curr_values = np.array(errors_norm) - currscale * (np.array(SS)) + 0.5 * corr_penalty_norm  # f(k;alpha,j)
             currmin = nfactors[np.argwhere(curr_values == np.min(curr_values))[0][0]]
 
             curr_df = {'vals': np.append(curr_values, np.min(curr_values)),
@@ -354,6 +362,7 @@ def onmf(data, dataset_name, ncells=2000, nfactors=list(range(5, 16)), nreps=2, 
         ncells = int(np.floor(maxncells / 2))  # adjust number down
 
     # randomly select ncells and divide into training and cross-validation dataset
+    np.random.seed(42)
     idx = np.random.choice(data.shape[1], 2 * ncells, replace=False)
     idx1 = idx[0:ncells]
     idx2 = idx[ncells:]
@@ -460,8 +469,8 @@ def evaluate(autoencoder, datasets):
     return evaluation_stats
 
 
-def CAPE_train(data_path, dataset_name, model_index=0, seed=0, perturbation_key='condition', split_key=None,
-               max_epochs=300, lambda_adv=1, lambda_ort=0.5, patience=5, hparams=None, verbose=True):
+def CAPE_train(data_path, dataset_name, model_index=0, perturbation_key='condition', split_key=None,
+               max_epochs=300, lambda_adv=0.5, lambda_ort=0.5, patience=10, seed=0,  hparams=None, verbose=True):
     """
     Disentangling perturbation effects from inherent cell-state variations with adversarial training.
     The embeddings (basal state, factor-level expression), the orthogonal loading matrix,
@@ -484,9 +493,9 @@ def CAPE_train(data_path, dataset_name, model_index=0, seed=0, perturbation_key=
     max_epochs: int
     The maximum training epochs
     lambda_adv: float
-    The weight of adversarial loss, default 1
+    The weight of adversarial loss
     lambda_ort: float
-    The weight of orthogonal loss, default 0.5
+    The weight of orthogonal loss
     patience: int
     Early stopping.
     The training stops if the reconstruction is not improving in the latest 5*patience epochs.
@@ -691,6 +700,14 @@ def CF_single_target_single_factor(target, factor, basal, treated, adata, pert_k
     # set variables for causal forest Y=outcome, T=treatment, X=covariates,
     X = basal[basal.obs.condition.isin([target, 'control'])].X
     Y = treated[treated.obs.condition.isin([target, 'control'])].X[:, factor]
+    if "control" in adata.obs:
+        pass
+    else:
+        ctrl_dummy = np.zeros_like(adata.obs[pert_key])
+        for i in range(len(ctrl_dummy)):
+            if adata.obs[pert_key][i] == 'control':
+                ctrl_dummy[i] = 1
+        adata.obs['control'] = ctrl_dummy.tolist()
     T = 1 - adata[adata.obs[pert_key].isin([target, 'control'])].obs.control
 
     # set parameters for causal forest
@@ -752,6 +769,14 @@ def CF_single_target_all_factor(target, basal, treated, adata, pert_key='conditi
     # set variables for causal forest Y=outcome, T=treatment, X=covariates, W=effect_modifiers
     X = basal[basal.obs.condition.isin([target, 'control'])].X
     Y = treated[treated.obs.condition.isin([target, 'control'])].X
+    if "control" in adata.obs:
+        pass
+    else:
+        ctrl_dummy = np.zeros_like(adata.obs[pert_key])
+        for i in range(len(ctrl_dummy)):
+            if adata.obs[pert_key][i] == 'control':
+                ctrl_dummy[i] = 1
+        adata.obs['control'] = ctrl_dummy.tolist()
     T = 1 - adata[adata.obs[pert_key].isin([target, 'control'])].obs.control
 
     # set parameters for causal forest
