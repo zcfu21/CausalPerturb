@@ -86,7 +86,7 @@ for factor in range(gene_loading.shape[0]):
 ```
 The GO enrichment results will be stored in "./dataset_name/CAPE".
 
-Check the basic usage with a toy data in 'res'.
+Check the basic usage with a toy data ('toydata.py') in 'res'.
 
 ### Other available functions
 
