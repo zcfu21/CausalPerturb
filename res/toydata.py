@@ -11,6 +11,7 @@ import pandas as pd
 import scanpy as sc
 import matplotlib.pyplot as plt
 import os
+import torch
 
 # The toy dataset is simulated from the PBMC dataset, with 3k cells and one perturbation
 # that increases IFN-gamma–related gene expression specifically in B cells.
@@ -19,20 +20,21 @@ def main():
     data_path = 'data/toydata.h5ad'  # data path
     adata = sc.read_h5ad(data_path)  # read data
 
-    # Initialize W using oNMF, ~ 20 minutes
+    # Initialize W using oNMF, ~ 15 minutes
     sccape.onmf(data=adata.X.T, dataset_name=dataset_name,
-                ncells=500, nfactors=list(range(5, 16)), nreps=2, niters=500)
+               ncells=500, nfactors=list(range(5, 16)), nreps=2, niters=500)
 
-    # Training, ~ 5 minutes
-    sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition',
-                      max_epochs=300, model_index=0, verbose=True)
+    # Training, ~ 20 minutes
+    sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
+                     max_epochs=300, lambda_adv_list=None, lambda_ort_list=None, patience=10, hparams=None,
+                     verbose=True)
 
     # Read basal, factors and loading
-    basal = sc.read_h5ad(os.path.join(dataset_name, 'CAPE', 'model_index={}_basal.h5ad'.format(0)))  # basal state
+    basal = sc.read_h5ad(os.path.join(dataset_name, 'CAPE', 'model_index=0_basal.h5ad'))  # basal state
     treated = sc.read_h5ad(
-        os.path.join(dataset_name, 'CAPE', 'model_index={}_treated.h5ad').format(0))  # outcome factor state
+        os.path.join(dataset_name, 'CAPE', 'model_index=0_treated.h5ad'))  # outcome factor state
     gene_loading = np.load(
-        os.path.join(dataset_name, 'CAPE', 'model_index={}_gene_loading.npy').format(0))  # gene loading matrix
+        os.path.join(dataset_name, 'CAPE', 'model_index=0_gene_loading.npy'))  # gene loading matrix
     gene_loading_df = pd.DataFrame(gene_loading, columns=adata.var_names)
 
     # IFN related genes
