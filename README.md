@@ -56,7 +56,7 @@ sccape.onmf(data=adata.X.T, dataset_name=dataset_name, ncells=2000, nfactors=lis
 sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
                      max_epochs=300, lambda_adv_list=None, lambda_ort_list=None, hparams=None, verbose=True)
 ```
-**The model file** ('stored_model.pt'), **basal state**('model_basal.h5ad'), **outcome factor** ('model_treated.h5ad') and **gene loading matrix** ('model_gene_loading.npy') will be stored in "./dataset_name/CAPE". 
+**The model file** ('stored_model.pt'), **basal state**('model_basal.h5ad'), **outcome factor** ('model_treated.h5ad') and **gene loading matrix** ('model_gene_loading.npy') will be stored in "./dataset_name/CAPE". Currently only supports training on CPU.
 
 3. Growing causal forests for each perturbation and factor:<br>
 ```python
