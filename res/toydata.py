@@ -26,7 +26,7 @@ def main():
 
     # Training, ~ 20 minutes
     sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
-                     max_epochs=300, lambda_adv_list=None, lambda_ort_list=None, patience=10, hparams=None,
+                     max_epochs=300, lambda_adv_list=None, lambda_ort_list=None, hparams=None,
                      verbose=True)
 
     # Read basal, factors and loading
