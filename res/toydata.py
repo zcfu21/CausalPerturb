@@ -26,8 +26,7 @@ def main():
 
     # Training, ~ 20 minutes
     sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
-                     max_epochs=300, lambda_adv_list=None, lambda_ort_list=None, hparams=None,
-                     verbose=True)
+                     max_epochs=300, lambda_adv_list=None, lambda_ort_list=None, hparams=None, verbose=True)
 
     # Read basal, factors and loading
     basal = sc.read_h5ad(os.path.join(dataset_name, 'CAPE', 'model_index=0_basal.h5ad'))  # basal state
