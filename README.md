@@ -17,7 +17,7 @@ scCAPE enables us to
 * and infer genetic interactions in high-MOI datasets.
 
 ### Installation
-scCAPE is based on `python` version 3.7+, `torch` and `scanpy`. Install directly from pip with:
+scCAPE is based on `python` version 3.9, `torch` and `scanpy`. Install directly from pip with:
 
 ```python
   pip install scCAPE
