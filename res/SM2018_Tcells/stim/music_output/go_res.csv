@@ -1,0 +1,31 @@
+"","Cluster","Description","qvalue","Count"
+"1","Topic 1","ammonium import across plasma membrane",0.0643567704414695,2
+"2","Topic 1","regulation of peptidyl-serine phosphorylation",0.144876469349326,5
+"3","Topic 1","positive regulation of protein binding",0.144876469349326,4
+"4","Topic 1","regulation of protein tyrosine kinase activity",0.144876469349326,4
+"5","Topic 1","ammonium transport",0.144876469349326,2
+"1569","Topic 2","mature B cell differentiation",0.176497127978416,3
+"1570","Topic 2","cellular response to inorganic substance",0.176497127978416,6
+"1571","Topic 2","B cell activation",0.176497127978416,7
+"1572","Topic 2","ammonium transport",0.176497127978416,2
+"1573","Topic 2","ammonium transmembrane transport",0.176497127978416,2
+"3340","Topic 3","positive regulation of endoplasmic reticulum stress-induced intrinsic apoptotic signaling pathway",0.298800836455744,2
+"3341","Topic 3","SCF-dependent proteasomal ubiquitin-dependent protein catabolic process",0.298800836455744,3
+"3342","Topic 3","ER overload response",0.298800836455744,2
+"3343","Topic 3","positive regulation of response to external stimulus",0.298800836455744,7
+"3344","Topic 3","N-terminal protein amino acid acetylation",0.298800836455744,2
+"5079","Topic 4","nuclear division",0.00463166799208678,11
+"5080","Topic 4","organelle fission",0.00632259231881467,11
+"5081","Topic 4","mitotic nuclear division",0.017500522711295,8
+"5082","Topic 4","mitotic chromosome movement towards spindle pole",0.0345971109806703,2
+"5083","Topic 4","regulation of mitotic nuclear division",0.0345971109806703,5
+"6770","Topic 5","regulation of NK T cell differentiation",0.00307761439475634,3
+"6771","Topic 5","cellular defense response",0.00417903052168565,5
+"6772","Topic 5","NK T cell differentiation",0.0060718801381965,3
+"6773","Topic 5","regulation of extrathymic T cell differentiation",0.00805455825074189,2
+"6774","Topic 5","positive regulation of autophagy",0.00805455825074189,6
+"8592","Topic 6","mitotic cell cycle phase transition",1.98509999648479e-05,14
+"8593","Topic 6","regulation of cell cycle phase transition",0.000255531711063558,12
+"8594","Topic 6","chromosome segregation",0.000398998982084452,11
+"8595","Topic 6","regulation of mitotic cell cycle phase transition",0.00054307361673005,10
+"8596","Topic 6","regulation of mitotic cell cycle",0.00054307361673005,12
