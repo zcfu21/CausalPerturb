@@ -4,8 +4,8 @@ name:Toy data training
 """
 
 import seaborn as sns
-from scCAPE import sccape
-from scCAPE import plotting
+from CausalPerturb import causalperturb as cp
+from CausalPerturb import plotting
 import numpy as np
 import pandas as pd
 import scanpy as sc
@@ -21,19 +21,19 @@ def main():
     adata = sc.read_h5ad(data_path)  # read data
 
     # Initialize W using oNMF, ~ 15 minutes
-    sccape.onmf(data=adata.X.T, dataset_name=dataset_name,
-               ncells=500, nfactors=list(range(5, 16)), nreps=2, niters=500)
+    cp.onmf(data=adata.X.T, dataset_name=dataset_name, ncells=500, nfactors=list(range(5, 16)))
 
-    # Training, ~ 20 minutes
-    sccape.CAPE_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
-                     max_epochs=300, lambda_adv_list=None, lambda_ort_list=None, hparams=None, verbose=True)
+
+    # Tuning parameters
+    cp.model_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
+                     max_epochs=300, verbose=True)
 
     # Read basal, factors and loading
-    basal = sc.read_h5ad(os.path.join(dataset_name, 'CAPE', 'model_index=0_basal.h5ad'))  # basal state
+    basal = sc.read_h5ad(os.path.join(dataset_name, 'train_res', 'model_index={}_basal.h5ad'.format(0)))  # basal state
     treated = sc.read_h5ad(
-        os.path.join(dataset_name, 'CAPE', 'model_index=0_treated.h5ad'))  # outcome factor state
+        os.path.join(dataset_name, 'train_res', 'model_index={}_treated.h5ad').format(0))  # outcome factor state
     gene_loading = np.load(
-        os.path.join(dataset_name, 'CAPE', 'model_index=0_gene_loading.npy'))  # gene loading matrix
+        os.path.join(dataset_name, 'train_res', 'model_index={}_gene_loading.npy').format(0))  # gene loading matrix
     gene_loading_df = pd.DataFrame(gene_loading, columns=adata.var_names)
 
     # IFN related genes
@@ -53,12 +53,15 @@ def main():
     plt.ylabel('Factors', fontsize=12)
     plt.savefig(os.path.join(dataset_name, 'gene_loading.png'), bbox_inches='tight', dpi=1000)
     plt.close()
-    # Factor 7 is highly related, so we study the perturbation effects on Factor 7.
-
+    
+    row_sums = np.sum(gene_loading_df[IFN_genes].values,axis=1)
+    max_row_index = np.argmax(row_sums)
+    print('Factor {} is highly related, so we study the perturbation effects on Factor {}.'.format(max_row_index,max_row_index) )
+    
     # Run causal forest
     tau_factor_mean, tau_q_val_factor, sig_factor = \
-        sccape.CF_single_target_single_factor(target='perturbed', factor=7, basal=basal,
-                                              treated=treated, adata=adata, pert_key='condition',
+        cp.CF_single_target_single_factor(target='perturbed', factor=max_row_index, basal=basal,
+                                              treated=treated, pert_key='condition',
                                               n_estimators=500, min_samples_leaf=10,
                                               random_state=140, alpha=0.05)
 
@@ -80,7 +83,6 @@ def main():
         plt.show()
 
     # The perturbation effect is significant only in B cells, as expected.
-    # A small number of false positives appears in CD14-Mono cells likely due to noise in the data.
 
 if __name__ == '__main__':
     main()
