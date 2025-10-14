@@ -20,11 +20,11 @@ def main():
     data_path = 'data/toydata.h5ad'  # data path
     adata = sc.read_h5ad(data_path)  # read data
 
-    # Initialize W using oNMF, ~ 15 minutes
+    # Initialize W using oNMF, ~ 10 minutes
     cp.onmf(data=adata.X.T, dataset_name=dataset_name, ncells=500, nfactors=list(range(5, 16)))
 
 
-    # Tuning parameters
+    # Model training, ~ 15 minutes
     cp.model_train(data_path=data_path, dataset_name=dataset_name, perturbation_key='condition', split_key=None,
                      max_epochs=300, verbose=True)
 
@@ -86,3 +86,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
